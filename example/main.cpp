@@ -17,8 +17,6 @@ static D3DPRESENT_PARAMETERS    g_d3dpp;
 
 short GetUsageOfCPU()
 {
-	const static HANDLE hCurrentProcess = GetCurrentProcess();
-
 	static DWORD dwNumberOfProcessors = 0;
 
 	if (!dwNumberOfProcessors)
@@ -32,6 +30,8 @@ short GetUsageOfCPU()
 
 	GetSystemTimeAsFileTime(&now);
 
+	const static HANDLE hCurrentProcess = GetCurrentProcess();
+
 	if (!GetProcessTimes(hCurrentProcess, &creation_time, &exit_time, &kernel_time, &user_time))
 		return -1;
 
@@ -40,7 +40,6 @@ short GetUsageOfCPU()
 		LARGE_INTEGER li;
 		li.LowPart = ft->dwLowDateTime;
 		li.HighPart = ft->dwHighDateTime;
-
 		return li.QuadPart;
 	};
 
@@ -119,7 +118,6 @@ int CALLBACK WinMain(
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);
 	
-
 	MSG msg;
 	ZeroMemory(&msg, sizeof(msg));
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
@@ -151,6 +149,8 @@ int CALLBACK WinMain(
 		{
 			pRender->BeginDraw();
 			
+			//pRender->PushRenderState(D3DRS_ANTIALIASEDLINEENABLE, TRUE);
+
 			pRender->DrawGradientBox(20, 20, 200, 50, Color::Blue, 0xFFCCCC00, true);
 
 			pRender->DrawFilledBox(240, 20, 200, 50, Color::SkyBlue);
@@ -160,8 +160,8 @@ int CALLBACK WinMain(
 
 			pRender->DrawCircle(120, 190, 100, 32, Color::Red, true);
 			pRender->DrawCircle(340, 190, 100, 32, Color::Yellow);
-			pRender->DrawGradientCircle(560, 190, 100, 32, Color::Green, 0);
-
+			pRender->DrawGradientCircle(560, 190, 100, 32, Color::Green, Color::Red);
+			
 			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, Color::Green);
 			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, Color::SkyBlue, true);
 			pRender->DrawGradientTriangle(560, 310, 460, 480, 660, 480, Color::Yellow, Color::Green, Color::Red);

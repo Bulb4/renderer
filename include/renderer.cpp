@@ -28,6 +28,9 @@ void cRender::BeginDraw()
 	PushRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 
 	m_pDevice->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
+
+	m_pDevice->SetTexture(0, NULL);
+	m_pDevice->SetPixelShader(NULL);
 }
 
 void cRender::EndDraw()
@@ -207,12 +210,18 @@ void cRender::DrawGradientBox(short x, short y, short width, short height, D3DCO
 
 void cRender::DrawCircle(short x, short y, short radius, byte points, D3DCOLOR color, bool filled)
 {
-	Vertex_t* pVertex = new Vertex_t[points + 1];
+	Vertex_t* pVertex = new Vertex_t[points + 2];
 
-	for (byte i = 0; i <= points; i++)
+	static const float angle = D3DX_PI / 180.f;
+	static const float flSin = sin(angle), flCos = cos(angle);
+
+	for (byte i = 0; i <= points + 1; i++)
 	{
 		cossin_t& sincos = m_SinCosTable[(points - 8) / 4][i];
-		CreateVertex(x + radius * sincos.flCos, y + (filled ? 1 : -1) * radius * sincos.flSin, color, &pVertex[i]);
+		CreateVertex(float(x + radius * sincos.flCos), float(y + (filled ? 1 : -1) * radius * sincos.flSin), color, &pVertex[i]);
+
+		pVertex[i].x = float(x + flCos * (pVertex[i].x - x) - flSin * (pVertex[i].y - y));
+		pVertex[i].y = float(y + flSin * (pVertex[i].x - x) + flCos * (pVertex[i].y - y));
 	}
 
 	m_pDevice->DrawPrimitiveUP(filled ? D3DPT_TRIANGLEFAN : D3DPT_LINESTRIP, points, pVertex, sizeof(Vertex_t));
@@ -225,10 +234,16 @@ void cRender::DrawGradientCircle(short x, short y, short radius, byte points, D3
 
 	CreateVertex(x, y, color2, pVertex);
 
+	static const float angle = D3DX_PI / 180.f;
+	static const float flSin = sin(angle), flCos = cos(angle);
+
 	for (byte i = 1; i <= points + 1; i++)
 	{
 		cossin_t& sincos = m_SinCosTable[(points - 8) / 4][i];
-		CreateVertex(x + radius * sincos.flCos, y - radius * sincos.flSin, color1, &pVertex[i]);
+		CreateVertex(float(x + radius * sincos.flCos), float(y - radius * sincos.flSin), color1, &pVertex[i]);
+
+		pVertex[i].x = float(x + flCos * (pVertex[i].x - x) - flSin * (pVertex[i].y - y));
+		pVertex[i].y = float(y + flSin * (pVertex[i].x - x) + flCos * (pVertex[i].y - y));
 	}
 
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, points, pVertex, sizeof(Vertex_t));
