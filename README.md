@@ -7,7 +7,7 @@
 
 #### Include: 
 ```
-git submodule add https://gitlab.mycrutches.ru/Bulb4/renderer.git
+git submodule add https://github.com/Bulb4/renderer.git
 ```
 
 ```java
