@@ -158,7 +158,7 @@ int CALLBACK WinMain(
 			pRender->DrawBox(680, 20, 200, 50, Color::Black);
 			pRender->DrawGradientBox(900, 20, 200, 50, Color::Blue, Color::Green, Color::Red, Color::Yellow);
 
-			pRender->DrawCircle(120, 190, 100, 32, Color::Red, true);
+			pRender->DrawCircle(60, 190, 100, 32, Color::Red, true);
 			pRender->DrawCircle(340, 190, 100, 32, Color::Yellow);
 			pRender->DrawGradientCircle(560, 190, 100, 32, Color::Green, 0);
 

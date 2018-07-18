@@ -44,12 +44,12 @@ void cRender::EndDraw()
 
 	dwElapsedTime = dwCurrentTime - dwLastUpdateTime;
 
-	static uint16_t iFrames = 0;
+	static short iFrames = 0;
 	iFrames++;
 
 	if (dwElapsedTime >= m_iFramerateUpdateRate)
 	{
-		m_iFramerate = uint16_t(iFrames * 1000.f / dwElapsedTime);
+		m_iFramerate = short(iFrames * 1000.f / dwElapsedTime);
 		iFrames = 0;
 		dwLastUpdateTime = dwCurrentTime;
 	}
@@ -90,7 +90,7 @@ bool cRender::AddFont(ID3DXFont** pFont, const char* szName, byte iSize, bool bA
 	return true;
 }
 
-inline void cRender::CreateVertex(uint16_t x, uint16_t y, D3DCOLOR color, Vertex_t* pVertex)
+inline void cRender::CreateVertex(short x, short y, D3DCOLOR color, Vertex_t* pVertex)
 {
 	pVertex->x = (float)x;
 	pVertex->y = (float)y;
@@ -107,7 +107,7 @@ void cRender::PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue)
 	m_pDevice->SetRenderState(dwState, dwValue);
 }
 
-void cRender::DrawString(uint16_t x, uint16_t y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...)
+void cRender::DrawString(short x, short y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...)
 {
 	va_list args;
 	char buf[128];
@@ -143,7 +143,7 @@ void cRender::DrawString(uint16_t x, uint16_t y, D3DCOLOR color, ID3DXFont* font
 	font->DrawTextA(NULL, buf, size, &pRect, dwFlags, color);
 }
 
-void cRender::DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, D3DCOLOR color) 
+void cRender::DrawLine(short x1, short y1, short x2, short y2, D3DCOLOR color) 
 {
 	Vertex_t pVertex[2];
 	CreateVertex(x1, y1, color, &pVertex[0]);
@@ -152,7 +152,7 @@ void cRender::DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, D3DCO
 	m_pDevice->DrawPrimitiveUP(D3DPT_LINELIST, 1, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawFilledBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color) 
+void cRender::DrawFilledBox(short x, short y, short width, short height, D3DCOLOR color) 
 {
 	Vertex_t pVertex[4];
 	CreateVertex(x, y, color, &pVertex[0]);
@@ -163,7 +163,7 @@ void cRender::DrawFilledBox(uint16_t x, uint16_t y, uint16_t width, uint16_t hei
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t thickness, D3DCOLOR color)
+void cRender::DrawBox(short x, short y, short width, short height, short thickness, D3DCOLOR color)
 {
 	DrawFilledBox(x, y, width, thickness, color);
 	DrawFilledBox(x, y, thickness, height, color);
@@ -171,7 +171,7 @@ void cRender::DrawBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, u
 	DrawFilledBox(x, y + height - thickness, width, thickness, color);
 }
 
-void cRender::DrawBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color)
+void cRender::DrawBox(short x, short y, short width, short height, D3DCOLOR color)
 {
 	Vertex_t pVertex[5];
 	CreateVertex(x, y, color, &pVertex[0]);
@@ -183,7 +183,7 @@ void cRender::DrawBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D
 	m_pDevice->DrawPrimitiveUP(D3DPT_LINESTRIP, 4, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawGradientBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color1, D3DCOLOR color2, bool vertical) 
+void cRender::DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1, D3DCOLOR color2, bool vertical) 
 {
 	Vertex_t pVertex[4];
 	CreateVertex(x, y, color1, &pVertex[0]);
@@ -194,7 +194,7 @@ void cRender::DrawGradientBox(uint16_t x, uint16_t y, uint16_t width, uint16_t h
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawGradientBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color1, D3DCOLOR color2, D3DCOLOR color3, D3DCOLOR color4)
+void cRender::DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1, D3DCOLOR color2, D3DCOLOR color3, D3DCOLOR color4)
 {
 	Vertex_t pVertex[4];
 	CreateVertex(x, y, color1, &pVertex[0]);
@@ -205,7 +205,7 @@ void cRender::DrawGradientBox(uint16_t x, uint16_t y, uint16_t width, uint16_t h
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawCircle(uint16_t x, uint16_t y, uint16_t radius, byte points, D3DCOLOR color, bool filled)
+void cRender::DrawCircle(short x, short y, short radius, byte points, D3DCOLOR color, bool filled)
 {
 	Vertex_t* pVertex = new Vertex_t[points + 1];
 
@@ -219,7 +219,7 @@ void cRender::DrawCircle(uint16_t x, uint16_t y, uint16_t radius, byte points, D
 	delete[] pVertex;
 }
 
-void cRender::DrawGradientCircle(uint16_t x, uint16_t y, uint16_t radius, byte points, D3DCOLOR color1, D3DCOLOR color2)
+void cRender::DrawGradientCircle(short x, short y, short radius, byte points, D3DCOLOR color1, D3DCOLOR color2)
 {
 	Vertex_t* pVertex = new Vertex_t[points + 2];
 
@@ -235,7 +235,7 @@ void cRender::DrawGradientCircle(uint16_t x, uint16_t y, uint16_t radius, byte p
 	delete[] pVertex;
 }
 
-void cRender::DrawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, D3DCOLOR color, bool filled)
+void cRender::DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color, bool filled)
 {
 	Vertex_t pVertex[4];
 	CreateVertex(x1, y1, color, &pVertex[0]);
@@ -246,7 +246,7 @@ void cRender::DrawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, u
 	m_pDevice->DrawPrimitiveUP(filled ? D3DPT_TRIANGLEFAN : D3DPT_LINESTRIP, 3, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawGradientTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, D3DCOLOR color1, D3DCOLOR color2, D3DCOLOR color3)
+void cRender::DrawGradientTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color1, D3DCOLOR color2, D3DCOLOR color3)
 {
 	Vertex_t pVertex[4];
 	CreateVertex(x1, y1, color1, &pVertex[0]);

@@ -38,30 +38,30 @@ public:
 
 	bool AddFont(ID3DXFont** pFont, const char* szName, byte iSize = 14, bool bAntiAliased = false);
 
-	void DrawString(uint16_t x, uint16_t y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...);
-	void DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, D3DCOLOR color = 0);
-	void DrawFilledBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color = 0);
+	void DrawString(short x, short y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...);
+	void DrawLine(short x1, short y1, short x2, short y2, D3DCOLOR color = 0);
+	void DrawFilledBox(short x, short y, short width, short height, D3DCOLOR color = 0);
 	//use DrawBox without thickness argument if thickness == 1
-	void DrawBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t thickness, D3DCOLOR color = 0);
-	void DrawBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color = 0);
-	void DrawGradientBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, bool vertical = false);
-	void DrawGradientBox(uint16_t x, uint16_t y, uint16_t width, uint16_t height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0, D3DCOLOR color4 = 0);
+	void DrawBox(short x, short y, short width, short height, short thickness, D3DCOLOR color = 0);
+	void DrawBox(short x, short y, short width, short height, D3DCOLOR color = 0);
+	void DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, bool vertical = false);
+	void DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0, D3DCOLOR color4 = 0);
 	//points should be divideable by 4, >= 8 && <= 32
-	void DrawCircle(uint16_t x, uint16_t y, uint16_t radius, byte points, D3DCOLOR color = 0, bool filled = false);
+	void DrawCircle(short x, short y, short radius, byte points, D3DCOLOR color = 0, bool filled = false);
 	//points should be divideable by 4, >= 8 && <= 32
-	void DrawGradientCircle(uint16_t x, uint16_t y, uint16_t radius, byte points, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0);
-	void DrawTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, D3DCOLOR color = 0, bool filled = false);
-	void DrawGradientTriangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t x3, uint16_t y3, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0);
+	void DrawGradientCircle(short x, short y, short radius, byte points, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0);
+	void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color = 0, bool filled = false);
+	void DrawGradientTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0);
 	
 	//frames per second
-	uint16_t GetFramerate() { return m_iFramerate; }
+	short GetFramerate() { return m_iFramerate; }
 	//milliseconds
-	void SetFramerateUpdateRate(uint16_t iUpdateRate) {	m_iFramerateUpdateRate = iUpdateRate; }
+	void SetFramerateUpdateRate(short iUpdateRate) {	m_iFramerateUpdateRate = iUpdateRate; }
 private:
 	struct cossin_t { float flCos, flSin; };
 	cossin_t m_SinCosTable[7][34];
 
-	uint16_t m_iFramerate = 0U, m_iFramerateUpdateRate = 1000U;
+	short m_iFramerate = 0U, m_iFramerateUpdateRate = 1000U;
 
 protected:
 	struct Vertex_t
@@ -96,5 +96,5 @@ protected:
 
 	vector<RenderState_t>m_RenderStates;
 
-	void CreateVertex(uint16_t x, uint16_t y, D3DCOLOR color, Vertex_t* pVertex);
+	void CreateVertex(short x, short y, D3DCOLOR color, Vertex_t* pVertex);
 };
