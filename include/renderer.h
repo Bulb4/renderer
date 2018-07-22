@@ -1,19 +1,19 @@
 #pragma once
 
-
 #define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
 
 #include <d3d9.h>
 #include <d3dx9.h>
 #pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 
+#include <cmath>
 #include <stdio.h>
 #include <vector>
 #include <map>
+
 using std::vector;
 using std::map;
 using std::pair;
@@ -29,16 +29,19 @@ DEF_COLOR(0xFF0000FF, Blue);
 
 DEF_COLOR(0xFFFFFF00, Yellow);
 DEF_COLOR(0xFF00FFFF, SkyBlue);
-DEF_COLOR(0xFFFF00FF, Purple);
+DEF_COLOR(0xFFFF00FF, Pink);
 
-#define CIRCLE_FILLED           '\1'
-#define CIRCLE_GRADIENT         '\2'
+//RDT - render draw type xddd
+
+#define RDT_FILLED		0x1U
+#define RDT_GRADIENT	0x2U
+#define RDT_OUTLINED	0x2U
 /*
 #define CIRCLE_CUSTOM_RADIUS    '\4'//default: 0
 #define CIRCLE_CUSTOM_SECTOR    '\8'//default: 0 - 360
 */
 
-class cRender 
+class cRender
 {
 public:
 	cRender(IDirect3DDevice9* device);
@@ -54,48 +57,57 @@ public:
 
 	bool AddFont(ID3DXFont** pFont, const char* szName, uint8_t iSize = 14, bool bAntiAliased = false);
 	//if outlined function become 5 times slower
-	void DrawString(short x, short y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...);
-	void DrawLine(short x1, short y1, short x2, short y2, D3DCOLOR color = 0);
-	void DrawFilledBox(short x, short y, short width, short height, D3DCOLOR color = 0);
+	void DrawString(int16_t x, int16_t y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...);
+	void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, D3DCOLOR color = 0);
+	void DrawFilledBox(int16_t x, int16_t y, int16_t width, int16_t height, D3DCOLOR color = 0);
 	//use DrawBox without thickness argument if thickness == 1
-	void DrawBox(short x, short y, short width, short height, short thickness = 2, D3DCOLOR color = 0);
-	void DrawBox(short x, short y, short width, short height, D3DCOLOR color = 0);
-	void DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, bool vertical = false);
-	void DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0, D3DCOLOR color4 = 0);
-	//use CIRCLE_FILLED for filledcircle, CIRCLE_GRADIENT for gradient circle and 0 for outlined circle
-	void DrawCircle(short x, short y, short radius, uint8_t points = 32, uint8_t flags = 0, D3DCOLOR color1 = 0xFF, D3DCOLOR color2 = 0);
-	void DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color = 0, bool filled = false);
-	void DrawGradientTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color1 = 0xFF, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0);
+	void DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, int16_t thickness = 2, D3DCOLOR color = 0);
+	void DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, D3DCOLOR color = 0);
+	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, bool vertical = false);
+	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0, D3DCOLOR color4 = 0);
+	//use RDT_FILLED for filledcircle, RDT_GRADIENT for gradient circle and RDT_OUTLINED for outlined circle
+	void DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points = 32, uint8_t flags = 0, D3DCOLOR color1 = 0xFF, D3DCOLOR color2 = 0);
+	void DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, uint8_t flags, D3DCOLOR color1, D3DCOLOR color2 = 0);
+	void DrawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint8_t flags = 0, D3DCOLOR color1 = 0xFF, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0);
 	//frames per second
-	short GetFramerate() { return m_iFramerate; }
+	int16_t GetFramerate() { return m_iFramerate; }
 	//milliseconds
-	void SetFramerateUpdateRate(short iUpdateRate) { m_iFramerateUpdateRate = iUpdateRate; }
+	void SetFramerateUpdateRate(uint16_t iUpdateRate) { m_iFramerateUpdateRate = iUpdateRate; }
 private:
 	struct SinCos_t { float flSin = 0.f, flCos = 0.f; };
-	map<uint8_t, vector<SinCos_t>> m_SinCosContainer;
+	map<uint16_t, vector<SinCos_t>> m_SinCosContainer;
 
-	SinCos_t* GetSinCos(uint8_t key)
+	SinCos_t* GetSinCos(uint16_t key)
 	{
 		if (!m_SinCosContainer.count(key))
 		{
-			vector<SinCos_t>temp_array(key);
+			vector<SinCos_t>temp_array(key + 1);
 
-			uint8_t i = 0;
+			uint16_t i = 0;
 			for (float angle = 0.0; angle <= 2 * D3DX_PI; angle += (2 * D3DX_PI) / key)
 				temp_array[i++] = SinCos_t{ sin(angle), cos(angle) };
 
-			m_SinCosContainer.insert(std::pair<uint8_t, vector<SinCos_t>>(key, temp_array));
+			m_SinCosContainer.insert(std::pair<uint16_t, vector<SinCos_t>>(key, temp_array));
 		}
 
 		return &m_SinCosContainer[key][0];
 	}
 
-	short m_iFramerate = 0, m_iFramerateUpdateRate = 1000;
+	uint16_t m_iFramerate = 0, m_iFramerateUpdateRate = 1000;
 
 protected:
 	struct Vertex_t
 	{
 		Vertex_t() { }
+
+		Vertex_t(int _x, int _y, D3DCOLOR _color)
+		{
+			x = float(_x);
+			y = float(_y);
+			z = 0;
+			rhw = 1;
+			color = _color;
+		}
 
 		Vertex_t(float _x, float _y, D3DCOLOR _color)
 		{

@@ -89,8 +89,8 @@ int CALLBACK WinMain(
 
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, WINDOW_NAME, NULL };
 	RegisterClassEx(&wc);
-	HWND hwnd = CreateWindow(WINDOW_NAME, "DirectX 9 Test", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
-
+	//HWND hwnd = CreateWindow(WINDOW_NAME, "DirectX 9 Test", WS_OVERLAPPEDWINDOW, 100, 100, 916, 710, NULL, NULL, wc.hInstance, NULL);
+	HWND hwnd = CreateWindow(WINDOW_NAME, "DirectX 9 Test", (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX), 100, 100, 916, 710, NULL, NULL, wc.hInstance, NULL);
 	LPDIRECT3D9 pD3D;
 	if ((pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == NULL)
 	{
@@ -127,7 +127,7 @@ int CALLBACK WinMain(
 	cRender* pRender = new cRender(g_pd3dDevice);
 
 	ID3DXFont* font1 = nullptr;
-	pRender->AddFont(&font1, "Consolas", 48, false);
+	pRender->AddFont(&font1, "System", 24, false);
 
 	pRender->SetFramerateUpdateRate(400U);
 
@@ -150,23 +150,22 @@ int CALLBACK WinMain(
 		{
 			pRender->BeginDraw();
 			
-			pRender->DrawLine(20, 10, 1240, 10, Color::Red);
+			pRender->DrawLine(20, 10, 880, 10, Color::Black);
 
-			pRender->DrawGradientBox(20, 20, 200, 50, Color::Blue, 0xFFCCCC00, true);
-
-			pRender->DrawFilledBox(240, 20, 200, 50, Color::SkyBlue);
-			pRender->DrawBox(460, 20, 200, 50, 4, Color::Black);
-			pRender->DrawBox(680, 20, 200, 50, Color::Black);
-			pRender->DrawGradientBox(900, 20, 200, 50, Color::Blue, Color::Green, Color::Red, Color::Yellow);
+			pRender->DrawBox(20, 20, 200, 50, Color::White);
+			pRender->DrawFilledBox(240, 20, 200, 50, 0x8000CCCC);
+			pRender->DrawGradientBox(460, 20, 200, 50, Color::Blue, Color::Green, Color::Red, Color::Yellow);
+			pRender->DrawBox(680, 20, 200, 50, 8, Color::Pink); 
 
 			pRender->DrawCircle(120, 190, 100, 32, 0, Color::Red);
-			pRender->DrawCircle(340, 190, 100, 32, CIRCLE_FILLED, Color::Blue);
-			pRender->DrawCircle(560, 190, 100, 32, CIRCLE_GRADIENT, Color::Black, Color::SkyBlue);
-			
-			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, Color::Green);
-			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, Color::SkyBlue, true);
-			pRender->DrawGradientTriangle(560, 310, 460, 480, 660, 480, Color::Yellow, Color::Green, Color::Red);
+			pRender->DrawCircle(340, 190, 100, 32, RDT_FILLED, Color::Blue);
+			pRender->DrawCircle(560, 190, 100, 32, RDT_GRADIENT, Color::Pink, Color::Green);
+			pRender->DrawRing(780, 190, 100, 50, 32, 0, Color::Red);
 
+			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, 0, Color::Green);
+			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RDT_FILLED, Color::SkyBlue);
+			pRender->DrawTriangle(560, 310, 460, 480, 660, 480, RDT_GRADIENT | RDT_FILLED, Color::Yellow, Color::Green, Color::Red);
+			
 			//text panel
 			{
 				static int cpu_usage = 0;
@@ -180,12 +179,9 @@ int CALLBACK WinMain(
 				last_fps = current_fps;
 
 				pRender->DrawString(
-					680, 90,
-					Color::White,
-					font1, true, false,
+					680, 310, Color::White,	font1, true, false,
 					"CPU: %i%%\nFPS: %d\nCPU Cores: %i\n%s",
-					cpu_usage, current_fps,
-					info.dwNumberOfProcessors,
+					cpu_usage, current_fps,	info.dwNumberOfProcessors,
 					AdapterIdentifier.Description);
 			}
 
