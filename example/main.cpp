@@ -9,6 +9,7 @@
 #pragma comment(lib,"d3d9.lib")
 #include <dinput.h>
 #include <tchar.h>
+#include <chrono>
 
 #include "../include/renderer.h"
 
@@ -149,7 +150,7 @@ int CALLBACK WinMain(
 		{
 			pRender->BeginDraw();
 			
-			//pRender->PushRenderState(D3DRS_ANTIALIASEDLINEENABLE, TRUE);
+			pRender->DrawLine(20, 10, 1240, 10, Color::Red);
 
 			pRender->DrawGradientBox(20, 20, 200, 50, Color::Blue, 0xFFCCCC00, true);
 
@@ -158,14 +159,14 @@ int CALLBACK WinMain(
 			pRender->DrawBox(680, 20, 200, 50, Color::Black);
 			pRender->DrawGradientBox(900, 20, 200, 50, Color::Blue, Color::Green, Color::Red, Color::Yellow);
 
-			pRender->DrawCircle(120, 190, 100, 32, Color::Red, true);
-			pRender->DrawCircle(340, 190, 100, 32, Color::Yellow);
-			pRender->DrawGradientCircle(560, 190, 100, 32, Color::Green, Color::Red);
+			pRender->DrawCircle(120, 190, 100, 32, 0, Color::Red);
+			pRender->DrawCircle(340, 190, 100, 32, CIRCLE_FILLED, Color::Blue);
+			pRender->DrawCircle(560, 190, 100, 32, CIRCLE_GRADIENT, Color::Black, Color::SkyBlue);
 			
 			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, Color::Green);
 			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, Color::SkyBlue, true);
 			pRender->DrawGradientTriangle(560, 310, 460, 480, 660, 480, Color::Yellow, Color::Green, Color::Red);
-		
+
 			//text panel
 			{
 				static int cpu_usage = 0;

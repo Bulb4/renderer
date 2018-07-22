@@ -3,14 +3,6 @@
 cRender::cRender(IDirect3DDevice9* device)
 {
 	m_pDevice = device;
-
-	for (byte n = 0; n <= 6; n++)
-		for (byte i = 0; i < 34; i++)
-		{
-			const float temp = D3DX_PI * (i / ((n * 4 + 8)/ 2.f));
-			m_SinCosTable[n][i].flCos = cos(temp);
-			m_SinCosTable[n][i].flSin = sin(temp);
-		}
 }
 
 cRender::~cRender()
@@ -75,7 +67,7 @@ void cRender::OnResetDevice()
 		}
 }
 
-bool cRender::AddFont(ID3DXFont** pFont, const char* szName, byte iSize, bool bAntiAliased)
+bool cRender::AddFont(ID3DXFont** pFont, const char* szName, uint8_t iSize, bool bAntiAliased)
 {
 	Font_t font;
 	
@@ -93,15 +85,6 @@ bool cRender::AddFont(ID3DXFont** pFont, const char* szName, byte iSize, bool bA
 	return true;
 }
 
-inline void cRender::CreateVertex(short x, short y, D3DCOLOR color, Vertex_t* pVertex)
-{
-	pVertex->x = (float)x;
-	pVertex->y = (float)y;
-	pVertex->z = 0.f;
-	pVertex->rhw = 1.f;
-	pVertex->color = color;
-}
-
 void cRender::PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue)
 {
 	DWORD dwTempValue;
@@ -113,44 +96,45 @@ void cRender::PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue)
 void cRender::DrawString(short x, short y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...)
 {
 	va_list args;
-	char buf[128];
+	char buf[256];
 	va_start(args, text);
 	vsprintf_s(buf, text, args);
 	va_end(args);
 
 	const size_t size = strlen(buf);
 
-	const DWORD dwFlags = centered ? DT_CENTER : DT_NOCLIP;
-
-	RECT pRect;
+	RECT rect = { x, y };
 	
-	if (outlined) 
+	if (centered)
 	{
-		pRect.left = x - 1;
-		pRect.top = y;
-		font->DrawTextA(NULL, buf, size, &pRect, dwFlags, Color::Black);
-		pRect.left = x + 1;
-		pRect.top = y;
-		font->DrawTextA(NULL, buf, size, &pRect, dwFlags, Color::Black);
-		pRect.left = x;
-		pRect.top = y - 1;
-		font->DrawTextA(NULL, buf, size, &pRect, dwFlags, Color::Black);
-		pRect.left = x;
-		pRect.top = y + 1;
-		font->DrawTextA(NULL, buf, size, &pRect, dwFlags, Color::Black);
+		RECT size_rect = { 0 };
+		font->DrawTextA(NULL, buf, size, &size_rect, DT_CALCRECT, 0);
+
+		rect.left -= size_rect.right / 2;
+		rect.top -= size_rect.bottom / 2;
 	}
 
-	pRect.left = x;
-	pRect.top = y;
+	if (outlined) 
+	{
+		rect.top++;
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x; y + 1
+		rect.left++; rect.top--;
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x + 1; y
+		rect.left--; rect.top--;
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x; y - 1
+		rect.left--; rect.top++;
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x - 1; y
+		rect.left++;
+	}
 
-	font->DrawTextA(NULL, buf, size, &pRect, dwFlags, color);
+	font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, color);
 }
 
 void cRender::DrawLine(short x1, short y1, short x2, short y2, D3DCOLOR color) 
 {
 	Vertex_t pVertex[2];
-	CreateVertex(x1, y1, color, &pVertex[0]);
-	CreateVertex(x2, y2, color, &pVertex[1]);
+	pVertex[0] = Vertex_t(x1, y1, color);
+	pVertex[1] = Vertex_t(x2, y2, color);
 
 	m_pDevice->DrawPrimitiveUP(D3DPT_LINELIST, 1, pVertex, sizeof(Vertex_t));
 }
@@ -158,10 +142,10 @@ void cRender::DrawLine(short x1, short y1, short x2, short y2, D3DCOLOR color)
 void cRender::DrawFilledBox(short x, short y, short width, short height, D3DCOLOR color) 
 {
 	Vertex_t pVertex[4];
-	CreateVertex(x, y, color, &pVertex[0]);
-	CreateVertex(x + width, y, color, &pVertex[1]);
-	CreateVertex(x, y + height, color, &pVertex[2]);
-	CreateVertex(x + width, y + height, color, &pVertex[3]);
+	pVertex[0] = Vertex_t(x, y, color);
+	pVertex[1] = Vertex_t(x + width, y, color);
+	pVertex[2] = Vertex_t(x, y + height, color);
+	pVertex[3] = Vertex_t(x + width, y + height, color);
 
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(Vertex_t));
 }
@@ -177,86 +161,69 @@ void cRender::DrawBox(short x, short y, short width, short height, short thickne
 void cRender::DrawBox(short x, short y, short width, short height, D3DCOLOR color)
 {
 	Vertex_t pVertex[5];
-	CreateVertex(x, y, color, &pVertex[0]);
-	CreateVertex(x + width, y, color, &pVertex[1]);
-	CreateVertex(x, y + height, color, &pVertex[3]);
-	CreateVertex(x + width, y + height, color, &pVertex[2]);
-	CreateVertex(x, y, color, &pVertex[4]);
+
+	pVertex[0] = Vertex_t(x, y, color);
+	pVertex[1] = Vertex_t(x + width, y, color);
+	pVertex[2] = Vertex_t(x + width, y + height, color);
+	pVertex[3] = Vertex_t(x, y + height, color);
+	pVertex[4] = pVertex[0];
 
 	m_pDevice->DrawPrimitiveUP(D3DPT_LINESTRIP, 4, pVertex, sizeof(Vertex_t));
 }
 
 void cRender::DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1, D3DCOLOR color2, bool vertical) 
 {
-	Vertex_t pVertex[4];
-	CreateVertex(x, y, color1, &pVertex[0]);
-	CreateVertex(x + width, y, vertical ? color1 : color2, &pVertex[1]);
-	CreateVertex(x, y + height, vertical ? color2 : color1, &pVertex[2]);
-	CreateVertex(x + width, y + height, color2, &pVertex[3]);
-
-	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(Vertex_t));
+	DrawGradientBox(x, y, width, height, color1, vertical ? color1 : color2, vertical ? color2 : color1, color2);
 }
 
 void cRender::DrawGradientBox(short x, short y, short width, short height, D3DCOLOR color1, D3DCOLOR color2, D3DCOLOR color3, D3DCOLOR color4)
 {
 	Vertex_t pVertex[4];
-	CreateVertex(x, y, color1, &pVertex[0]);
-	CreateVertex(x + width, y, color2, &pVertex[1]);
-	CreateVertex(x, y + height, color3, &pVertex[2]);
-	CreateVertex(x + width, y + height, color4, &pVertex[3]);
+	pVertex[0] = Vertex_t(x, y, color1);
+	pVertex[1] = Vertex_t(x + width, y, color2);
+	pVertex[2] = Vertex_t(x, y + height, color3);
+	pVertex[3] = Vertex_t(x + width, y + height, color4);
 
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawCircle(short x, short y, short radius, byte points, D3DCOLOR color, bool filled)
+void cRender::DrawCircle(short x, short y, short radius, uint8_t points, uint8_t flags, D3DCOLOR color1, D3DCOLOR color2)
 {
-	Vertex_t* pVertex = new Vertex_t[points + 2];
+	const bool gradient = (flags & CIRCLE_GRADIENT);
+	const bool filled = (flags & CIRCLE_FILLED) || gradient;
 
-	static const float angle = D3DX_PI / 180.f;
-	static const float flSin = sin(angle), flCos = cos(angle);
+	Vertex_t* verticles = new Vertex_t[points + gradient + 1];
+	SinCos_t* pSinCos = GetSinCos(points);
 
-	for (byte i = 0; i <= points + 1; i++)
+	if (gradient)
+		verticles[0] = Vertex_t(x, y, color2);
+
+	for (uint8_t i = gradient; i < points + gradient; i++)
 	{
-		cossin_t& sincos = m_SinCosTable[(points - 8) / 4][i];
-		CreateVertex(float(x + radius * sincos.flCos), float(y + (filled ? 1 : -1) * radius * sincos.flSin), color, &pVertex[i]);
+		verticles[i] = Vertex_t(x + pSinCos[i - gradient].flCos * radius, y + pSinCos[i - gradient].flSin * radius, color1);
+		
+		if (filled)
+		{
+			static const float angle = D3DX_PI / 180.f, flSin = sin(angle), flCos = cos(angle);
 
-		pVertex[i].x = float(x + flCos * (pVertex[i].x - x) - flSin * (pVertex[i].y - y));
-		pVertex[i].y = float(y + flSin * (pVertex[i].x - x) + flCos * (pVertex[i].y - y));
+			verticles[i - gradient].x = float(x + flCos * (verticles[i - gradient].x - x) - flSin * (verticles[i - gradient].y - y));
+			verticles[i - gradient].y = float(y + flSin * (verticles[i - gradient].x - x) + flCos * (verticles[i - gradient].y - y));
+		}
 	}
 
-	m_pDevice->DrawPrimitiveUP(filled ? D3DPT_TRIANGLEFAN : D3DPT_LINESTRIP, points, pVertex, sizeof(Vertex_t));
-	delete[] pVertex;
-}
+	verticles[points + gradient] = verticles[gradient];
 
-void cRender::DrawGradientCircle(short x, short y, short radius, byte points, D3DCOLOR color1, D3DCOLOR color2)
-{
-	Vertex_t* pVertex = new Vertex_t[points + 2];
-
-	CreateVertex(x, y, color2, pVertex);
-
-	static const float angle = D3DX_PI / 180.f;
-	static const float flSin = sin(angle), flCos = cos(angle);
-
-	for (byte i = 1; i <= points + 1; i++)
-	{
-		cossin_t& sincos = m_SinCosTable[(points - 8) / 4][i];
-		CreateVertex(float(x + radius * sincos.flCos), float(y - radius * sincos.flSin), color1, &pVertex[i]);
-
-		pVertex[i].x = float(x + flCos * (pVertex[i].x - x) - flSin * (pVertex[i].y - y));
-		pVertex[i].y = float(y + flSin * (pVertex[i].x - x) + flCos * (pVertex[i].y - y));
-	}
-
-	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, points, pVertex, sizeof(Vertex_t));
-	delete[] pVertex;
+	m_pDevice->DrawPrimitiveUP(filled ? D3DPT_TRIANGLEFAN : D3DPT_LINESTRIP, points, verticles, sizeof(Vertex_t));
+	delete[] verticles;
 }
 
 void cRender::DrawTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color, bool filled)
 {
 	Vertex_t pVertex[4];
-	CreateVertex(x1, y1, color, &pVertex[0]);
-	CreateVertex(x2, y2, color, &pVertex[2]);
-	CreateVertex(x3, y3, color, &pVertex[1]);
-	CreateVertex(x1, y1, color, &pVertex[3]);
+	pVertex[0] = Vertex_t(x1, y1, color);
+	pVertex[1] = Vertex_t(x2, y2, color);
+	pVertex[2] = Vertex_t(x3, y3, color);
+	pVertex[3] = pVertex[0];
 
 	m_pDevice->DrawPrimitiveUP(filled ? D3DPT_TRIANGLEFAN : D3DPT_LINESTRIP, 3, pVertex, sizeof(Vertex_t));
 }
@@ -264,10 +231,10 @@ void cRender::DrawTriangle(short x1, short y1, short x2, short y2, short x3, sho
 void cRender::DrawGradientTriangle(short x1, short y1, short x2, short y2, short x3, short y3, D3DCOLOR color1, D3DCOLOR color2, D3DCOLOR color3)
 {
 	Vertex_t pVertex[4];
-	CreateVertex(x1, y1, color1, &pVertex[0]);
-	CreateVertex(x2, y2, color2, &pVertex[2]);
-	CreateVertex(x3, y3, color3, &pVertex[1]);
-	CreateVertex(x1, y1, color1, &pVertex[3]);
+	pVertex[0] = Vertex_t(x1, y1, color1);
+	pVertex[1] = Vertex_t(x2, y2, color2);
+	pVertex[2] = Vertex_t(x3, y3, color3);
+	pVertex[3] = pVertex[0];
 
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 3, pVertex, sizeof(Vertex_t));
 }
