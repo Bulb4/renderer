@@ -1,6 +1,6 @@
 ## Example
 
-[SOURCE \*click*](../blob/master/example/main.cpp)
+[SOURCE \*click*](../master/example/main.cpp)
 ![alt text](../master/example/screenshot.png?raw=true "example illustration")
 
 ## Usage
