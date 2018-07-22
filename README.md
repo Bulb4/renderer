@@ -1,7 +1,7 @@
 ## Example
 
 [SOURCE \*click*](../blob/master/include/main.cpp)
-![alt text](/blob/master/example/screenshot.png?raw=true "example illustration")
+![alt text](../master/example/screenshot.png?raw=true "example illustration")
 
 ## Usage
 
