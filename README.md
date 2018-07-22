@@ -1,7 +1,7 @@
 ## Example
 
-[SOURCE\*click*](../blob/master/include/main.cpp)
-![alt text](https://cdn.discordapp.com/attachments/466954372660723714/469097710356660245/unknown.png "example illustration")
+[SOURCE \*click*](../blob/master/include/main.cpp)
+![alt text](/blob/master/example/screenshot.png?raw=true "example illustration")
 
 ## Usage
 
