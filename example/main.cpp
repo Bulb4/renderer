@@ -158,14 +158,27 @@ int CALLBACK WinMain(
 			pRender->DrawBox(680, 20, 200, 50, 8, Color::Pink); 
 
 			pRender->DrawCircle(120, 190, 100, 32, 0, Color::Red);
-			pRender->DrawCircle(340, 190, 100, 32, RDT_FILLED, Color::Blue);
+			pRender->DrawCircle(340, 190, 100, 32, 0, Color::Green);
 			pRender->DrawCircle(560, 190, 100, 32, RDT_GRADIENT, Color::Pink, Color::Green);
-			pRender->DrawRing(780, 190, 100, 50, 32, 0, Color::Red);
+
+
+			pRender->DrawRing(780, 190, 100, 80, 64, RDT_FILLED, Color::Blue);
 
 			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, 0, Color::Green);
 			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RDT_FILLED, Color::SkyBlue);
 			pRender->DrawTriangle(560, 310, 460, 480, 660, 480, RDT_GRADIENT | RDT_FILLED, Color::Yellow, Color::Green, Color::Red);
 			
+			static float time = 0;
+
+			time += 0.1f;
+
+			if (time > 360.f)
+				time -= 360.f;
+
+			pRender->DrawCircleSector(780, 380, 100, 30, time, time + 45, Color::Blue, Color::Yellow);
+			pRender->DrawRingSector(780, 380, 100, 90, 30, time + 180, time + 225, Color::Red, Color::Red);
+
+
 			//text panel
 			{
 				static int cpu_usage = 0;
@@ -179,9 +192,10 @@ int CALLBACK WinMain(
 				last_fps = current_fps;
 
 				pRender->DrawString(
-					680, 310, Color::White,	font1, true, false,
+					680, 510, Color::White,	font1, true, false,
 					"CPU: %i%%\nFPS: %d\nCPU Cores: %i\n%s",
-					cpu_usage, current_fps,	info.dwNumberOfProcessors,
+					cpu_usage, current_fps,	
+					info.dwNumberOfProcessors,
 					AdapterIdentifier.Description);
 			}
 

@@ -67,7 +67,9 @@ public:
 	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, D3DCOLOR color1 = 0, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0, D3DCOLOR color4 = 0);
 	//use RDT_FILLED for filledcircle, RDT_GRADIENT for gradient circle and RDT_OUTLINED for outlined circle
 	void DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points = 32, uint8_t flags = 0, D3DCOLOR color1 = 0xFF, D3DCOLOR color2 = 0);
+	void DrawCircleSector(int16_t x, int16_t y, int16_t radius, uint16_t points, uint16_t angle1, uint16_t angle2, D3DCOLOR color1, D3DCOLOR color2 = 0);
 	void DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, uint8_t flags, D3DCOLOR color1, D3DCOLOR color2 = 0);
+	void DrawRingSector(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, uint16_t angle1, uint16_t angle2, D3DCOLOR color1, D3DCOLOR color2 = 0);
 	void DrawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint8_t flags = 0, D3DCOLOR color1 = 0xFF, D3DCOLOR color2 = 0, D3DCOLOR color3 = 0);
 	//frames per second
 	int16_t GetFramerate() { return m_iFramerate; }

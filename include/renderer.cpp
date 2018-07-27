@@ -204,7 +204,7 @@ void cRender::DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points, 
 
 	Vertex_t* verticles = new Vertex_t[points + gradient + 1];
 	SinCos_t* pSinCos = GetSinCos(points);
-
+	
 	if (gradient)
 		verticles[0] = Vertex_t(x, y, color2);
 
@@ -227,15 +227,46 @@ void cRender::DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points, 
 	delete[] verticles;
 }
 
+void cRender::DrawCircleSector(int16_t x, int16_t y, int16_t radius, uint16_t points, uint16_t angle1, uint16_t angle2, D3DCOLOR color1, D3DCOLOR color2)
+{
+	angle1 += 270;
+	angle2 += 270;
+
+	if (angle1 > angle2)
+		angle2 += 360;
+
+	Vertex_t* verticles = new Vertex_t[points + 2];
+
+	const float stop = 2 * D3DX_PI * float(angle2) / 360.f;
+	verticles[points + 1] = Vertex_t(x + cos(stop) * radius, y + sin(stop) * radius, color1);
+	verticles[0] = Vertex_t(x, y, color2);
+
+	float angle = 2 * D3DX_PI * float(angle1) / 360.f;
+	const float step = ((2 * D3DX_PI * float(angle2) / 360.f) - angle) / points;
+
+	for (uint16_t i = 1; i != points + 1; angle += step, i++)
+		verticles[i] = Vertex_t(x + cos(angle) * radius, y + sin(angle) * radius, color1);
+
+	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, points, verticles, sizeof(Vertex_t));
+	delete[] verticles;
+}
+
 void cRender::DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, uint8_t flags, D3DCOLOR color1, D3DCOLOR color2)
 {
 	if (!(flags & RDT_GRADIENT))
 		color2 = color1;
-		
+
+	if (flags & RDT_OUTLINED)
+	{
+		DrawCircle(x, y, radius1, points, RDT_OUTLINED, color1);
+		DrawCircle(x, y, radius2, points, RDT_OUTLINED, color2);
+		return;
+	}
+
 	const uint8_t modifier = 4;
 	Vertex_t* verticles = new Vertex_t[points * modifier];
 	SinCos_t* pSinCos = GetSinCos(points);
-
+	
 	for (uint16_t i = 0; i < points; i++)
 	{
 		uint16_t it = i * modifier;
@@ -261,6 +292,47 @@ void cRender::DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, u
 	verticles[points * modifier + 0] = verticles[0];
 	verticles[points * modifier + 1] = verticles[1];
 	
+	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, points * modifier, verticles, sizeof(Vertex_t));
+	delete[] verticles;
+}
+
+void cRender::DrawRingSector(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, uint16_t angle1, uint16_t angle2, D3DCOLOR color1, D3DCOLOR color2)
+{
+	angle1 += 270;
+	angle2 += 270;
+
+	if (angle1 > angle2)
+		angle2 += 360;
+
+	const uint8_t modifier = 4;
+	Vertex_t* verticles = new Vertex_t[points * modifier];
+	
+	const float start = 2 * D3DX_PI * float(angle1) / 360.f;
+	const float stop = 2 * D3DX_PI * float(angle2) / 360.f;
+	const float step = (stop - start) / points;
+	
+	SinCos_t sincos[2] = { sin(start), cos(start) };
+
+	for (uint16_t i = 0; i < points; i++)
+	{
+		const uint16_t it = i * modifier;
+
+		const float temp_angle = start + step * i;
+		sincos[!bool(i % 2)] = { sin(temp_angle + step), cos(temp_angle + step) };
+
+		verticles[it] = Vertex_t(x + sincos[0].flCos * radius1, y + sincos[0].flSin * radius1, color1);
+		verticles[it + 1] = Vertex_t(x + sincos[1].flCos * radius2, y + sincos[1].flSin * radius2, color2);
+		verticles[it + 2] = verticles[it];
+		verticles[it + 3] = verticles[it + 1];
+	}
+
+	points--;
+
+	verticles[0] = Vertex_t(x, y, color2);
+	verticles[1] = Vertex_t(x + cos(start) * radius2, y + sin(start) * radius2, color2);
+	verticles[points * modifier + 0] = Vertex_t(x + cos(stop) * radius1 + 1, y + sin(stop) * radius1, color1);
+	verticles[points * modifier + 1] = Vertex_t(x + cos(stop) * radius2 + 1, y + sin(stop) * radius2, color2);
+
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, points * modifier, verticles, sizeof(Vertex_t));
 	delete[] verticles;
 }
