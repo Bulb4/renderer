@@ -7,11 +7,11 @@
 #ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
 #endif // ! _USE_MATH_DEFINES
+
 #include <d3d9.h>
 #include <d3dx9.h>
 #pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
-
 
 #include <cmath>
 #include <stdio.h>
@@ -35,15 +35,12 @@ DEF_COLOR(0xFFFFFF00, Yellow);
 DEF_COLOR(0xFF00FFFF, SkyBlue);
 DEF_COLOR(0xFFFF00FF, Pink);
 
-//RDT - render draw type xddd
+
+//RDT - render draw type
 
 #define RDT_FILLED		0x1U
 #define RDT_GRADIENT	0x2U
 #define RDT_OUTLINED	0x2U
-/*
-#define CIRCLE_CUSTOM_RADIUS    '\4'//default: 0
-#define CIRCLE_CUSTOM_SECTOR    '\8'//default: 0 - 360
-*/
 
 class cRender
 {
@@ -53,8 +50,6 @@ public:
 
 	void BeginDraw();
 	void EndDraw();
-
-	void PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue);
 
 	void OnLostDevice();
 	void OnResetDevice();
