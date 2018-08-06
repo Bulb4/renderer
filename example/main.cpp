@@ -150,23 +150,23 @@ int CALLBACK WinMain(
 		{
 			pRender->BeginDraw();
 			
-			pRender->DrawLine(20, 10, 880, 10, Color::Black);
+			pRender->DrawLine(20, 10, 880, 10, Colors::Black);
 
-			pRender->DrawBox(20, 20, 200, 50, Color::White);
+			pRender->DrawBox(20, 20, 200, 50, Colors::White);
 			pRender->DrawFilledBox(240, 20, 200, 50, 0x8000CCCC);
-			pRender->DrawGradientBox(460, 20, 200, 50, Color::Blue, Color::Green, Color::Red, Color::Yellow);
-			pRender->DrawBox(680, 20, 200, 50, 8, Color::Pink); 
+			pRender->DrawGradientBox(460, 20, 200, 50, Colors::Blue, Colors::Green, Colors::Red, Colors::Yellow);
+			pRender->DrawBox(680, 20, 200, 50, 8, Colors::Pink);
 
-			pRender->DrawCircle(120, 190, 100, 32, 0, Color::Red);
-			pRender->DrawCircle(340, 190, 100, 32, 0, Color::Green);
-			pRender->DrawCircle(560, 190, 100, 32, RDT_GRADIENT, Color::Pink, Color::Green);
+			pRender->DrawCircle(120, 190, 100, 32, 0, Colors::Red);
+			pRender->DrawCircle(340, 190, 100, 32, RDT_FILLED, Colors::Green);
+			pRender->DrawCircle(560, 190, 100, 32, RDT_GRADIENT, Colors::Pink, Colors::Green);
 
 
-			pRender->DrawRing(780, 190, 100, 80, 64, RDT_FILLED, Color::Blue);
+			pRender->DrawRing(780, 190, 100, 80, 64, RDT_FILLED, Colors::Blue);
 
-			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, 0, Color::Green);
-			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RDT_FILLED, Color::SkyBlue);
-			pRender->DrawTriangle(560, 310, 460, 480, 660, 480, RDT_GRADIENT | RDT_FILLED, Color::Yellow, Color::Green, Color::Red);
+			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, 0, Colors::Green);
+			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RDT_FILLED, Colors::SkyBlue);
+			pRender->DrawTriangle(560, 310, 460, 480, 660, 480, RDT_GRADIENT | RDT_FILLED, Colors::Yellow, Colors::Green, Colors::Red);
 			
 			static float time = 0;
 
@@ -175,9 +175,8 @@ int CALLBACK WinMain(
 			if (time > 360.f)
 				time -= 360.f;
 
-			pRender->DrawCircleSector(780, 380, 100, 30, time, time + 45, Color::Blue, Color::Yellow);
-			pRender->DrawRingSector(780, 380, 100, 90, 30, time + 180, time + 225, Color::Red, Color::Red);
-
+			pRender->DrawCircleSector(780, 380, 100, 30, time, time + 45, Colors::Blue, Colors::Yellow);
+			pRender->DrawRingSector(780, 380, 100, 90, 30, time + 180, time + 225, Colors::Red, Colors::Red);
 
 			//text panel
 			{
@@ -192,7 +191,7 @@ int CALLBACK WinMain(
 				last_fps = current_fps;
 
 				pRender->DrawString(
-					680, 510, Color::White,	font1, true, false,
+					680, 510, Colors::White,	font1, true, false,
 					"CPU: %i%%\nFPS: %d\nCPU Cores: %i\n%s",
 					cpu_usage, current_fps,	
 					info.dwNumberOfProcessors,

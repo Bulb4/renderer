@@ -12,36 +12,28 @@ cRender::~cRender()
 
 void cRender::BeginDraw()
 {
-	/*
-	PushRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-	PushRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	PushRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	PushRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	PushRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
-	PushRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-	*/
+	m_pDevice->CreateStateBlock(D3DSBT_PIXELSTATE, &m_pStateBlock);
+	
+	if (m_pStateBlock)
+		m_pStateBlock->Capture();
 
-	PushRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-	PushRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	PushRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	PushRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	PushRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
-	PushRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-
+	m_pDevice->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+	m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	m_pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+	m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
 
 	m_pDevice->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
-
-	m_pDevice->SetTexture(0, NULL);
-	m_pDevice->SetPixelShader(NULL);
 }
 
 void cRender::EndDraw()
 {
-	//pop render states
-	for (auto a : m_RenderStates)
-		m_pDevice->SetRenderState(a.dwState, a.dwValue);
-
-	m_RenderStates.clear();
+	if (m_pStateBlock)
+	{
+		m_pStateBlock->Apply();
+		m_pStateBlock->Release();
+	}
 
 	//framerate calculator
 	const DWORD dwCurrentTime = GetTickCount();
@@ -65,6 +57,8 @@ void cRender::OnLostDevice()
 	for (auto a : m_FontsList)
 		if (*a.pFont)
 			(*a.pFont)->OnLostDevice();
+
+	m_pStateBlock = nullptr;
 }
 
 void cRender::OnResetDevice()
@@ -95,14 +89,6 @@ bool cRender::AddFont(ID3DXFont** pFont, const char* szName, uint8_t iSize, bool
 	return true;
 }
 
-void cRender::PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue)
-{
-	DWORD dwTempValue;
-	m_pDevice->GetRenderState(dwState, &dwTempValue);
-	m_RenderStates.push_back({ dwState, dwTempValue });
-	m_pDevice->SetRenderState(dwState, dwValue);
-}
-
 void cRender::DrawString(int16_t x, int16_t y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...)
 {
 	va_list args;
@@ -127,13 +113,13 @@ void cRender::DrawString(int16_t x, int16_t y, D3DCOLOR color, ID3DXFont* font, 
 	if (outlined) 
 	{
 		rect.top++;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x; y + 1
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Colors::Black);//x; y + 1
 		rect.left++; rect.top--;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x + 1; y
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Colors::Black);//x + 1; y
 		rect.left--; rect.top--;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x; y - 1
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Colors::Black);//x; y - 1
 		rect.left--; rect.top++;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Color::Black);//x - 1; y
+		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, Colors::Black);//x - 1; y
 		rect.left++;
 	}
 

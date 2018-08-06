@@ -1,8 +1,12 @@
 #pragma once
 
+#ifndef  _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
-#define _USE_MATH_DEFINES
+#endif // ! _CRT_SECURE_NO_WARNINGS
 
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif // ! _USE_MATH_DEFINES
 #include <d3d9.h>
 #include <d3dx9.h>
 #pragma comment(lib,"d3d9.lib")
@@ -18,7 +22,7 @@ using std::vector;
 using std::map;
 using std::pair;
 
-#define DEF_COLOR(data, name) namespace Color { static const D3DCOLOR name = data; }
+#define DEF_COLOR(data, name) namespace Colors { static const D3DCOLOR name = data; }
 
 DEF_COLOR(0xFF000000, Black);
 DEF_COLOR(0xFFFFFFFF, White);
@@ -76,6 +80,8 @@ public:
 	//milliseconds
 	void SetFramerateUpdateRate(uint16_t iUpdateRate) { m_iFramerateUpdateRate = iUpdateRate; }
 private:
+	IDirect3DStateBlock9* m_pStateBlock;
+
 	struct SinCos_t { float flSin = 0.f, flCos = 0.f; };
 	map<uint16_t, vector<SinCos_t>> m_SinCosContainer;
 
