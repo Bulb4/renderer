@@ -54,6 +54,8 @@ public:
 	void OnLostDevice();
 	void OnResetDevice();
 
+	inline void PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue);
+
 	bool AddFont(ID3DXFont** pFont, const char* szName, uint8_t iSize = 14, bool bAntiAliased = false);
 	//if outlined function become 5 times slower
 	void DrawString(int16_t x, int16_t y, D3DCOLOR color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...);
@@ -75,7 +77,7 @@ public:
 	//milliseconds
 	void SetFramerateUpdateRate(uint16_t iUpdateRate) { m_iFramerateUpdateRate = iUpdateRate; }
 private:
-	IDirect3DStateBlock9* m_pStateBlock;
+	IDirect3DStateBlock9* m_pStateBlock = nullptr;
 
 	struct SinCos_t { float flSin = 0.f, flCos = 0.f; };
 	map<uint16_t, vector<SinCos_t>> m_SinCosContainer;
@@ -99,6 +101,7 @@ private:
 	uint16_t m_iFramerate = 0, m_iFramerateUpdateRate = 1000;
 
 protected:
+
 	struct Vertex_t
 	{
 		Vertex_t() { }

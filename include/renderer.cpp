@@ -12,28 +12,28 @@ cRender::~cRender()
 
 void cRender::BeginDraw()
 {
-	m_pDevice->CreateStateBlock(D3DSBT_PIXELSTATE, &m_pStateBlock);
-	
-	if (m_pStateBlock)
-		m_pStateBlock->Capture();
+	PushRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
+	PushRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
+	PushRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
+	PushRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+	PushRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+	PushRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	PushRenderState(D3DRS_FILLMODE, FALSE);
+	PushRenderState(D3DRS_SHADEMODE, FALSE);
 
-	m_pDevice->SetRenderState(D3DRS_COLORWRITEENABLE, 0xFFFFFFFF);
-	m_pDevice->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
-	m_pDevice->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	m_pDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	m_pDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
-	m_pDevice->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	m_pDevice->SetTexture(0, NULL);
+	m_pDevice->SetPixelShader(NULL);
 
 	m_pDevice->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
 }
 
 void cRender::EndDraw()
 {
-	if (m_pStateBlock)
-	{
-		m_pStateBlock->Apply();
-		m_pStateBlock->Release();
-	}
+	//pop render states
+	for (auto a : m_RenderStates)
+		m_pDevice->SetRenderState(a.dwState, a.dwValue);
+	
+	m_RenderStates.clear();
 
 	//framerate calculator
 	const DWORD dwCurrentTime = GetTickCount();
@@ -50,6 +50,14 @@ void cRender::EndDraw()
 		iFrames = 0;
 		dwLastUpdateTime = dwCurrentTime;
 	}
+}
+
+void cRender::PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue)
+{
+	DWORD dwTempValue;
+	m_pDevice->GetRenderState(dwState, &dwTempValue);
+	m_RenderStates.push_back({ dwState, dwTempValue });
+	m_pDevice->SetRenderState(dwState, dwValue);
 }
 
 void cRender::OnLostDevice()

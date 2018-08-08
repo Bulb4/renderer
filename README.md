@@ -45,6 +45,7 @@ if (g_pd3dDevice->Reset(&g_d3dpp) >= 0)
 ***
 #### Notes:
 * Use `pRender->GetFramerate()` for fps monitoring and you can change it's update rate by `pRender->SetFramerateUpdateRate(400U);//ms`
+* Use `pRender->PushRenderState(...)` if you need to use some render states while drawing, but you need to return it's previous value after.
 * Use `DrawBox(...)` without `short thickness` argument if the thickness is 1.
  
 ***
