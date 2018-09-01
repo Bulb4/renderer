@@ -16,6 +16,13 @@ cRender::~cRender()
 		i->second = nullptr;
 	}
 
+	for (auto& a : m_FontsList)
+		if (*a.pFont)
+		{
+			(*a.pFont)->Release();
+			*a.pFont = nullptr;
+		}
+
 	m_pDevice = nullptr;
 }
 
@@ -74,8 +81,6 @@ void cRender::OnLostDevice()
 	for (auto& a : m_FontsList)
 		if (*a.pFont)
 			(*a.pFont)->OnLostDevice();
-
-	m_pStateBlock = nullptr;
 }
 
 void cRender::OnResetDevice()
@@ -129,7 +134,8 @@ void cRender::DrawString(int16_t x, int16_t y, color_t color, ID3DXFont* font, b
 
 	if (outlined)
 	{
-		auto outline_color = static_cast<const color_t>((color.color >> 24) << 24);//black with alpha from "color"
+		//black with alpha from "color"
+		auto outline_color = static_cast<const color_t>((color.color >> 24) << 24);
 
 		rect.top++;
 		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x; y + 1
@@ -208,11 +214,14 @@ void cRender::DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points, 
 	const bool filled = (flags & RenderDrawType_Filled) || gradient;
 
 	Vertex_t* verticles = new Vertex_t[points + gradient + 1];
+
+#if _USE_DYNAMIC_SIN_COS != 1
 	SinCos_t* pSinCos = GetSinCos(points);
+#endif // !_USE_DYNAMIC_SIN_COS
 
 	if (gradient)
 		verticles[0] = Vertex_t(x, y, color2);
-
+	
 	for (uint16_t i = gradient; i < points + gradient; i++)
 	{
 		verticles[i] = Vertex_t(x + pSinCos[i - gradient].flCos * radius, y + pSinCos[i - gradient].flSin * radius, color1);
@@ -243,7 +252,7 @@ void cRender::DrawCircleSector(int16_t x, int16_t y, int16_t radius, uint16_t po
 
 	if (angle1 > angle2)
 		angle2 += 360;
-
+	
 	Vertex_t* verticles = new Vertex_t[points + 2];
 
 	const float stop = 2 * D3DX_PI * static_cast<float>(angle2) / 360.f;
@@ -274,13 +283,14 @@ void cRender::DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, u
 
 	constexpr uint8_t modifier = 4;
 	Vertex_t* verticles = new Vertex_t[points * modifier];
+
 	SinCos_t* pSinCos = GetSinCos(points);
 
 	for (uint16_t i = 0; i < points; i++)
 	{
 		uint16_t it = i * modifier;
 
-		verticles[it] =     Vertex_t(x + pSinCos[i].flCos * radius1, y + pSinCos[i].flSin * radius1, color1);
+		verticles[it] =		Vertex_t(x + pSinCos[i].flCos * radius1, y + pSinCos[i].flSin * radius1, color1);
 		verticles[it + 1] = Vertex_t(x + pSinCos[i].flCos * radius2, y + pSinCos[i].flSin * radius2, color2);
 		verticles[it + 2] = Vertex_t(x + pSinCos[i + 1].flCos * radius1, y + pSinCos[i + 1].flSin * radius1, color1);
 		verticles[it + 3] = Vertex_t(x + pSinCos[i + 1].flCos * radius2, y + pSinCos[i + 1].flSin * radius2, color2);
@@ -329,7 +339,7 @@ void cRender::DrawRingSector(int16_t x, int16_t y, int16_t radius1, int16_t radi
 
 		const uint16_t it = i * modifier;
 
-		verticles[it] =     Vertex_t(x + sincos[0].flCos * radius1, y + sincos[0].flSin * radius1, color1);
+		verticles[it] =		Vertex_t(x + sincos[0].flCos * radius1, y + sincos[0].flSin * radius1, color1);
 		verticles[it + 1] = Vertex_t(x + sincos[1].flCos * radius2, y + sincos[1].flSin * radius2, color2);
 		verticles[it + 2] = verticles[it];
 		verticles[it + 3] = verticles[it + 1];
@@ -339,8 +349,8 @@ void cRender::DrawRingSector(int16_t x, int16_t y, int16_t radius1, int16_t radi
 
 	verticles[0] = Vertex_t(x, y, color2);
 	verticles[1] = Vertex_t(x + cos(start) * radius2, y + sin(start) * radius2, color2);
-	verticles[points * modifier] =     Vertex_t(x + cos(stop) * radius1 + 1, y + sin(stop) * radius1, color1);
-	verticles[points * modifier + 1] = Vertex_t(x + cos(stop) * radius2 + 1, y + sin(stop) * radius2, color2);
+	verticles[points * modifier] =		Vertex_t(x + cos(stop) * radius1 + 1, y + sin(stop) * radius1, color1);
+	verticles[points * modifier + 1] =	Vertex_t(x + cos(stop) * radius2 + 1, y + sin(stop) * radius2, color2);
 
 	m_pDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, points * modifier, verticles, sizeof(Vertex_t));
 	delete[] verticles;

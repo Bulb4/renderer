@@ -12,8 +12,12 @@
 
 #include "../include/renderer.h"
 
-static LPDIRECT3DDEVICE9        g_pd3dDevice = NULL;
-static D3DPRESENT_PARAMETERS    g_d3dpp;
+static LPDIRECT3DDEVICE9 g_pd3dDevice = NULL;
+static D3DPRESENT_PARAMETERS g_d3dpp;
+
+LPDIRECT3DTEXTURE9 pRadarTexture = nullptr;
+LPD3DXSPRITE pRadarSprite = nullptr;
+
 
 short GetUsageOfCPU()
 {
@@ -89,7 +93,7 @@ int CALLBACK WinMain(
 
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, WINDOW_NAME, NULL };
 	RegisterClassEx(&wc);
-	HWND hwnd = CreateWindow(WINDOW_NAME, "DirectX 9 Test", WS_OVERLAPPEDWINDOW, 100, 100, 916, 710, NULL, NULL, wc.hInstance, NULL);
+	HWND hwnd = CreateWindow(WINDOW_NAME, "DirectX 9 Test", WS_OVERLAPPEDWINDOW, 100, 100, 1280, 720, NULL, NULL, wc.hInstance, NULL);
 
 	LPDIRECT3D9 pD3D;
 	if ((pD3D = Direct3DCreate9(D3D_SDK_VERSION)) == NULL)
@@ -131,7 +135,7 @@ int CALLBACK WinMain(
 	pRender->AddFont(&font1, "System", 24, false);
 
 	pRender->SetFramerateUpdateRate(400U);
-
+	
 	while (msg.message != WM_QUIT)
 	{
 		if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE))
@@ -149,27 +153,6 @@ int CALLBACK WinMain(
 		
 		if (g_pd3dDevice->BeginScene() >= 0)
 		{
-			pRender->BeginDraw();
-			pRender->PushRenderState(D3DRS_ANTIALIASEDLINEENABLE, TRUE);
-
-			pRender->DrawLine(20, 10, 880, 10, Colors::Black);
-
-			pRender->DrawBox(20, 20, 200, 50, Colors::White);
-			pRender->DrawFilledBox(240, 20, 200, 50, 0x8000CCCC);
-			pRender->DrawGradientBox(460, 20, 200, 50, Colors::Blue, Colors::Green, Colors::Red, Colors::Yellow);
-			pRender->DrawBox(680, 20, 200, 50, 8, Colors::Pink);
-
-			pRender->DrawCircle(120, 190, 100, 32, RenderDrawType_Outlined, Colors::Red);
-			pRender->DrawCircle(340, 190, 100, 32, RenderDrawType_Filled, Colors::Green);
-			pRender->DrawCircle(560, 190, 100, 32, RenderDrawType_Gradient, Colors::Pink, Colors::Green);
-
-
-			pRender->DrawRing(780, 190, 100, 80, 64, RenderDrawType_Filled, Colors::Blue);
-
-			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, RenderDrawType_Outlined, Colors::Green);
-			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RenderDrawType_Filled, Colors::SkyBlue);
-			pRender->DrawTriangle(560, 310, 460, 480, 660, 480, RenderDrawType_FilledGradient, Colors::Yellow, Colors::Green, Colors::Red);
-
 			static float time = 0;
 
 			time += 0.05f;
@@ -177,13 +160,34 @@ int CALLBACK WinMain(
 			if (time > 360.f)
 				time -= 360.f;
 
-			color_t text_color1 = 0, text_color2 = 0, text_color3 = 0;
-			text_color1.SetHSV(time / 360.f + 1.f / 3.f, 1.f, 1.f);
-			text_color2.SetHSV(time / 360.f + 2.f / 3.f, 1.f, 1.f);
-			text_color3.SetHSV(time / 360.f + 3.f / 3.f, 1.f, 1.f);
+			const uint8_t size = 3;
+			color_t rainbow_color[size];
 
-			pRender->DrawCircleSector(780, 380, 80, 30, time, time + 45, text_color1, text_color2);
-			pRender->DrawRingSector(780, 380, 65, 80, 30, time + 180, time + 225, text_color3, text_color3);
+			for (uint8_t i = 1; i <= size; i++)
+				rainbow_color[i - 1].SetHSV(time / 360.f + 1.f / i, 1.f, 1.f);
+
+			pRender->BeginDraw();
+			pRender->PushRenderState(D3DRS_ANTIALIASEDLINEENABLE, TRUE);
+			
+			pRender->DrawLine(20, 10, 880, 10, Colors::Black);
+
+			pRender->DrawBox(20, 20, 200, 50, Colors::White);
+			pRender->DrawFilledBox(240, 20, 200, 50, 0x8000CCCC);
+			pRender->DrawGradientBox(460, 20, 200, 50, rainbow_color[0], rainbow_color[1], rainbow_color[2], rainbow_color[3]);
+			pRender->DrawBox(680, 20, 200, 50, 8, Colors::Pink);
+
+			pRender->DrawCircle(120, 190, 100, 32, RenderDrawType_Outlined, Colors::Red);
+			pRender->DrawCircle(340, 190, 100, 32, RenderDrawType_Filled, Colors::Green);
+			pRender->DrawCircle(560, 190, 100, 32, RenderDrawType_Gradient, rainbow_color[0], rainbow_color[1]);
+
+			pRender->DrawRing(780, 190, 100, 80, 64, RenderDrawType_Filled, Colors::Blue);
+
+			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, RenderDrawType_Outlined, Colors::Green);
+			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RenderDrawType_Filled, Colors::SkyBlue);
+			pRender->DrawTriangle(560, 310, 460, 480, 660, 480, RenderDrawType_FilledGradient, rainbow_color[0], rainbow_color[1], rainbow_color[2]);
+
+			pRender->DrawCircleSector(780, 380, 80, 30, time, time + 45, rainbow_color[0], rainbow_color[1]);
+			pRender->DrawRingSector(780, 380, 65, 80, 30, time + 180, time + 225, rainbow_color[2], rainbow_color[2]);
 
 			//text panel
 			{
@@ -198,13 +202,12 @@ int CALLBACK WinMain(
 				last_fps = current_fps;
 
 				pRender->DrawString(
-					680, 510, Colors::White, font1, true, false,
+					900, 10, Colors::White, font1, true, false,
 					"CPU: %i%%\nFPS: %d\nCPU Cores: %i\n%s",
 					cpu_usage, current_fps,
 					info.dwNumberOfProcessors,
 					AdapterIdentifier.Description);
 			}
-
 
 			pRender->EndDraw();
 			

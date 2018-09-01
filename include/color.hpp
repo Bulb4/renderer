@@ -30,7 +30,7 @@ struct color_t
 	inline void set_g(const float g) { reinterpret_cast<uint8_t*>(&color)[1] = static_cast<uint8_t>(g * 255.f); }
 	inline void set_b(const float b) { reinterpret_cast<uint8_t*>(&color)[0] = static_cast<uint8_t>(b * 255.f); }
 
-	//color_t(D3DCOLOR value) : color(value) {}
+	color_t() : color(0) {}
 	color_t(int value) : color(value) {}
 	color_t(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF) : color(D3DCOLOR_RGBA(r, g, b, a)) {}
 	color_t(float* value) : color(D3DCOLOR_COLORVALUE(value[0], value[1], value[2], value[3])) {}
@@ -50,11 +50,6 @@ struct color_t
 		color = D3DCOLOR_COLORVALUE(rhs[0], rhs[1], rhs[2], rhs[3]);
 		return *this;
 	}
-	//inline color_t& operator=(const color_t& rhs)
-	//{
-	//	color = rhs.color;
-	//	return *this;
-	//}
 	inline operator const D3DCOLOR() const { return color; }
 	inline operator const uint8_t*() const { return (uint8_t*)this; }
 
@@ -68,8 +63,8 @@ struct color_t
 
 		h = fmodf(h, 1.f) / (60.f / 360.f);
 
-		const int i = (int)h;
-		const float f = h - (float)i;
+		const int i = static_cast<int>(h);
+		const float f = h - static_cast<float>(i);
 		const float q = v * (1.f - s * f);
 		const float t = v * (1.f - s * (1.0f - f));
 		const float p = v * (1.f - s);

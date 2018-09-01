@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef  _CRT_SECURE_NO_WARNINGS
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
 #endif // ! _CRT_SECURE_NO_WARNINGS
 
@@ -10,14 +10,14 @@
 
 #include <d3d9.h>
 #include <d3dx9.h>
-#pragma comment(lib,"d3d9.lib")
-#pragma comment(lib,"d3dx9.lib")
-
 #include <Windows.h>
 #include <cmath>
 #include <stdio.h>
 #include <vector>
 #include <map>
+
+#pragma comment(lib,"d3d9.lib")
+#pragma comment(lib,"d3dx9.lib")
 
 using std::vector;
 using std::map;
@@ -59,7 +59,7 @@ public:
 	void DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color = 0);
 	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color1 = 0, color_t color2 = 0, bool vertical = false);
 	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color1 = 0, color_t color2 = 0, color_t color3 = 0, color_t color4 = 0);
-	//use RDT_FILLED for filledcircle, RDT_GRADIENT for gradient circle and RenderDrawType_Outlined for outlined circle
+	//use RenderDrawType_Filled for filledcircle, RenderDrawType_Gradient for gradient circle and RenderDrawType_Outlined for outlined circle
 	void DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points = 64, RenderDrawType flags = RenderDrawType_Outlined, color_t color1 = 0xFF, color_t color2 = 0);
 	void DrawCircleSector(int16_t x, int16_t y, int16_t radius, uint16_t points, uint16_t angle1, uint16_t angle2, color_t color1, color_t color2 = 0);
 	void DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, RenderDrawType flags, color_t color1, color_t color2 = 0);
@@ -70,12 +70,25 @@ public:
 	int16_t GetFramerate() const { return m_iFramerate; }
 	//milliseconds
 	void SetFramerateUpdateRate(const uint16_t iUpdateRate) { m_iFramerateUpdateRate = iUpdateRate; }
-private:
-	IDirect3DStateBlock9* m_pStateBlock = nullptr;
 
+	struct font_t
+	{
+		IDirect3DDevice9* pDevice;
+		ID3DXFont** pFont;
+		char szName[64];
+		uint8_t iSize;
+		bool bAntiAliased;
+
+		bool update()
+		{
+			return D3DXCreateFontA(pDevice, iSize, 0, FW_NORMAL, 1, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
+				bAntiAliased ? ANTIALIASED_QUALITY : NONANTIALIASED_QUALITY, DEFAULT_PITCH, szName, pFont) == D3D_OK;
+		};
+	};
+private:
 	struct SinCos_t { float flSin = 0.f, flCos = 0.f; };
 	map<uint16_t, SinCos_t*> m_SinCosContainer;
-
+	//we dont need to calculate sin and cos every frame, we just need to calculate it one time and use
 	SinCos_t* GetSinCos(uint16_t key)
 	{
 		if (!m_SinCosContainer.count(key))
@@ -119,21 +132,6 @@ protected:
 
 		float x, y, z, rhw;
 		color_t color = 0;
-	};
-
-	struct font_t
-	{
-		IDirect3DDevice9* pDevice;
-		ID3DXFont** pFont;
-		char szName[64];
-		uint8_t iSize;
-		bool bAntiAliased;
-
-		bool update()
-		{
-			return D3DXCreateFontA(pDevice, iSize, 0, FW_NORMAL, 1, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-				bAntiAliased ? ANTIALIASED_QUALITY : NONANTIALIASED_QUALITY, DEFAULT_PITCH, szName, pFont) == D3D_OK;
-		};
 	};
 
 	IDirect3DDevice9* m_pDevice;
