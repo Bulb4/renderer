@@ -23,7 +23,11 @@ using std::vector;
 using std::map;
 using std::pair;
 
+#define RELEASE_INTERFACE(pInterface) if (pInterface) { pInterface->Release(); pInterface = nullptr; }
+
 #include "color.hpp"
+#include "font.hpp"
+
 
 enum RenderDrawType : uint32_t
 {
@@ -35,10 +39,11 @@ enum RenderDrawType : uint32_t
 	RenderDrawType_FilledGradient = RenderDrawType_Filled | RenderDrawType_Gradient
 };
 
+
 class cRender
 {
 public:
-	cRender(IDirect3DDevice9* device);
+	cRender(IDirect3DDevice9* device, bool bUseDynamicSinCos = false);
 	~cRender();
 
 	void BeginDraw();
@@ -49,46 +54,30 @@ public:
 
 	inline void PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue);
 
-	bool AddFont(ID3DXFont** pFont, const char* szName, uint8_t iSize = 14, bool bAntiAliased = false);
 	//if outlined function become 5 times slower
-	void DrawString(int16_t x, int16_t y, color_t color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...);
-	void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, color_t color = 0);
-	void DrawFilledBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color = 0);
+	void DrawString(int16_t x, int16_t y, color_t color, cFont* font, bool outlined, bool centered, const char* text, ...);
+	void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, color_t color);
+	void DrawFilledBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color);
 	//use DrawBox without thickness argument if thickness == 1
-	void DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, int16_t thickness = 2, color_t color = 0);
-	void DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color = 0);
-	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color1 = 0, color_t color2 = 0, bool vertical = false);
-	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color1 = 0, color_t color2 = 0, color_t color3 = 0, color_t color4 = 0);
+	void DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, int16_t thickness, color_t color);
+	void DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color);
+	void DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color1, color_t color2, color_t color3, color_t color4);
 	//use RenderDrawType_Filled for filledcircle, RenderDrawType_Gradient for gradient circle and RenderDrawType_Outlined for outlined circle
-	void DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points = 64, RenderDrawType flags = RenderDrawType_Outlined, color_t color1 = 0xFF, color_t color2 = 0);
-	void DrawCircleSector(int16_t x, int16_t y, int16_t radius, uint16_t points, uint16_t angle1, uint16_t angle2, color_t color1, color_t color2 = 0);
-	void DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, RenderDrawType flags, color_t color1, color_t color2 = 0);
-	void DrawRingSector(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, uint16_t angle1, uint16_t angle2, color_t color1, color_t color2 = 0);
-	void DrawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, RenderDrawType flags = RenderDrawType_Outlined, color_t color1 = 0xFF, color_t color2 = 0, color_t color3 = 0);
+	void DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points, RenderDrawType flags, color_t color1, color_t color2);
+	void DrawCircleSector(int16_t x, int16_t y, int16_t radius, uint16_t points, uint16_t angle1, uint16_t angle2, color_t color1, color_t color2);
+	void DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, RenderDrawType flags, color_t color1, color_t color2);
+	void DrawRingSector(int16_t x, int16_t y, int16_t radius1, int16_t radius2, uint16_t points, uint16_t angle1, uint16_t angle2, color_t color1, color_t color2);
+	void DrawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, RenderDrawType flags, color_t color1, color_t color2, color_t color3);
 
 	//frames per second
 	int16_t GetFramerate() const { return m_iFramerate; }
 	//milliseconds
 	void SetFramerateUpdateRate(const uint16_t iUpdateRate) { m_iFramerateUpdateRate = iUpdateRate; }
 
-	struct font_t
-	{
-		IDirect3DDevice9* pDevice;
-		ID3DXFont** pFont;
-		char szName[64];
-		uint8_t iSize;
-		bool bAntiAliased;
-
-		bool update()
-		{
-			return D3DXCreateFontA(pDevice, iSize, 0, FW_NORMAL, 1, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-				bAntiAliased ? ANTIALIASED_QUALITY : NONANTIALIASED_QUALITY, DEFAULT_PITCH, szName, pFont) == D3D_OK;
-		};
-	};
 private:
 	struct SinCos_t { float flSin = 0.f, flCos = 0.f; };
 	map<uint16_t, SinCos_t*> m_SinCosContainer;
-	//we dont need to calculate sin and cos every frame, we just need to calculate it one time and use
+	//we dont need to calculate sin and cos every frame, we just calculate it one time
 	SinCos_t* GetSinCos(uint16_t key)
 	{
 		if (!m_SinCosContainer.count(key))
@@ -105,8 +94,9 @@ private:
 		return m_SinCosContainer[key];
 	}
 
-	uint16_t m_iFramerate = 0, m_iFramerateUpdateRate = 1000;
+	bool m_bUseDynamicSinCos;
 
+	uint16_t m_iFramerate = 0, m_iFramerateUpdateRate = 1000;
 protected:
 	struct Vertex_t
 	{
@@ -135,8 +125,7 @@ protected:
 	};
 
 	IDirect3DDevice9* m_pDevice;
-	vector<font_t>m_FontsList;
-
+	
 	struct RenderState_t
 	{
 		D3DRENDERSTATETYPE dwState;

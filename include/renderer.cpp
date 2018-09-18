@@ -1,6 +1,7 @@
 #include "renderer.h"
 
-cRender::cRender(IDirect3DDevice9* device)
+cRender::cRender(IDirect3DDevice9* device, bool bUseDynamicSinCos) : 
+	m_bUseDynamicSinCos(bUseDynamicSinCos)
 {
 	if (!device)
 		throw std::exception("device == nullptr");
@@ -15,14 +16,7 @@ cRender::~cRender()
 		delete[] i->second;
 		i->second = nullptr;
 	}
-
-	for (auto& a : m_FontsList)
-		if (*a.pFont)
-		{
-			(*a.pFont)->Release();
-			*a.pFont = nullptr;
-		}
-
+	
 	m_pDevice = nullptr;
 }
 
@@ -76,42 +70,10 @@ void cRender::PushRenderState(const D3DRENDERSTATETYPE dwState, DWORD dwValue)
 	m_pDevice->SetRenderState(dwState, dwValue);
 }
 
-void cRender::OnLostDevice()
-{
-	for (auto& a : m_FontsList)
-		if (*a.pFont)
-			(*a.pFont)->OnLostDevice();
-}
+void cRender::OnLostDevice() { }
+void cRender::OnResetDevice() { }
 
-void cRender::OnResetDevice()
-{
-	for (auto& a : m_FontsList)
-		if (*a.pFont)
-		{
-			(*a.pFont)->OnResetDevice();
-			a.update();
-		}
-}
-
-bool cRender::AddFont(ID3DXFont** pFont, const char* szName, uint8_t iSize, bool bAntiAliased)
-{
-	font_t font;
-
-	font.pDevice = m_pDevice;
-	font.pFont = pFont;
-	font.iSize = iSize;
-	font.bAntiAliased = bAntiAliased;
-	sprintf_s(font.szName, szName);
-
-	if (!font.update())
-		return false;
-
-	m_FontsList.push_back(font);
-
-	return true;
-}
-
-void cRender::DrawString(int16_t x, int16_t y, color_t color, ID3DXFont* font, bool outlined, bool centered, const char* text, ...)
+void cRender::DrawString(int16_t x, int16_t y, color_t color, cFont* font, bool outlined, bool centered, const char* text, ...)
 {
 	va_list args;
 	char buf[256];
@@ -126,7 +88,7 @@ void cRender::DrawString(int16_t x, int16_t y, color_t color, ID3DXFont* font, b
 	if (centered)
 	{
 		RECT size_rect = { 0 };
-		font->DrawTextA(NULL, buf, size, &size_rect, DT_CALCRECT | DT_NOCLIP, 0);
+		font->GetFont()->DrawTextA(NULL, buf, size, &size_rect, DT_CALCRECT | DT_NOCLIP, 0);
 
 		rect.left -= size_rect.right / 2;
 		rect.top -= size_rect.bottom / 2;
@@ -138,17 +100,17 @@ void cRender::DrawString(int16_t x, int16_t y, color_t color, ID3DXFont* font, b
 		auto outline_color = static_cast<const color_t>((color.color >> 24) << 24);
 
 		rect.top++;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x; y + 1
+		font->GetFont()->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x; y + 1
 		rect.left++; rect.top--;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x + 1; y
+		font->GetFont()->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x + 1; y
 		rect.left--; rect.top--;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x; y - 1
+		font->GetFont()->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x; y - 1
 		rect.left--; rect.top++;
-		font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x - 1; y
+		font->GetFont()->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, outline_color);//x - 1; y
 		rect.left++;
 	}
 
-	font->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, color);
+	font->GetFont()->DrawTextA(NULL, buf, size, &rect, DT_NOCLIP, color);
 }
 
 void cRender::DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, color_t color)
@@ -192,11 +154,6 @@ void cRender::DrawBox(int16_t x, int16_t y, int16_t width, int16_t height, color
 	m_pDevice->DrawPrimitiveUP(D3DPT_LINESTRIP, 4, pVertex, sizeof(Vertex_t));
 }
 
-void cRender::DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color1, color_t color2, bool vertical)
-{
-	DrawGradientBox(x, y, width, height, color1, vertical ? color1 : color2, vertical ? color2 : color1, color2);
-}
-
 void cRender::DrawGradientBox(int16_t x, int16_t y, int16_t width, int16_t height, color_t color1, color_t color2, color_t color3, color_t color4)
 {
 	Vertex_t pVertex[4];
@@ -215,16 +172,22 @@ void cRender::DrawCircle(int16_t x, int16_t y, int16_t radius, uint16_t points, 
 
 	Vertex_t* verticles = new Vertex_t[points + gradient + 1];
 
-#if _USE_DYNAMIC_SIN_COS != 1
-	SinCos_t* pSinCos = GetSinCos(points);
-#endif // !_USE_DYNAMIC_SIN_COS
+	SinCos_t* pSinCos = m_bUseDynamicSinCos ? nullptr : GetSinCos(points);
 
 	if (gradient)
 		verticles[0] = Vertex_t(x, y, color2);
 	
 	for (uint16_t i = gradient; i < points + gradient; i++)
 	{
-		verticles[i] = Vertex_t(x + pSinCos[i - gradient].flCos * radius, y + pSinCos[i - gradient].flSin * radius, color1);
+		if (m_bUseDynamicSinCos)
+		{
+			const float angle = (2 * D3DX_PI) / points * (i - gradient);
+			verticles[i] = Vertex_t(x + cos(angle) *radius, y + sin(angle) * radius, color1);
+		}
+		else
+		{
+			verticles[i] = Vertex_t(x + pSinCos[i - gradient].flCos * radius, y + pSinCos[i - gradient].flSin * radius, color1);
+		}
 
 		if (filled)
 		{
@@ -276,24 +239,37 @@ void cRender::DrawRing(int16_t x, int16_t y, int16_t radius1, int16_t radius2, u
 
 	if (flags & RenderDrawType_Outlined)
 	{
-		DrawCircle(x, y, radius1, points, RenderDrawType_Outlined, color1);
-		DrawCircle(x, y, radius2, points, RenderDrawType_Outlined, color2);
+		DrawCircle(x, y, radius1, points, RenderDrawType_Outlined, color1, 0);
+		DrawCircle(x, y, radius2, points, RenderDrawType_Outlined, color2, 0);
 		return;
 	}
 
 	constexpr uint8_t modifier = 4;
 	Vertex_t* verticles = new Vertex_t[points * modifier];
 
-	SinCos_t* pSinCos = GetSinCos(points);
+	SinCos_t* pSinCos = m_bUseDynamicSinCos ? nullptr : GetSinCos(points);
 
 	for (uint16_t i = 0; i < points; i++)
 	{
 		uint16_t it = i * modifier;
+		
+		if (m_bUseDynamicSinCos)
+		{
+			const float angle1 = (2 * D3DX_PI) / points * i;
+			const float angle2 = (2 * D3DX_PI) / points * (i + 1);
 
-		verticles[it] =		Vertex_t(x + pSinCos[i].flCos * radius1, y + pSinCos[i].flSin * radius1, color1);
-		verticles[it + 1] = Vertex_t(x + pSinCos[i].flCos * radius2, y + pSinCos[i].flSin * radius2, color2);
-		verticles[it + 2] = Vertex_t(x + pSinCos[i + 1].flCos * radius1, y + pSinCos[i + 1].flSin * radius1, color1);
-		verticles[it + 3] = Vertex_t(x + pSinCos[i + 1].flCos * radius2, y + pSinCos[i + 1].flSin * radius2, color2);
+			verticles[it] = Vertex_t(x + cos(angle1) * radius1, y + sin(angle1) * radius1, color1);
+			verticles[it + 1] = Vertex_t(x + cos(angle1) * radius2, y + sin(angle1) * radius2, color2);
+			verticles[it + 2] = Vertex_t(x + cos(angle2) * radius1, y + sin(angle2) * radius1, color1);
+			verticles[it + 3] = Vertex_t(x + cos(angle2) * radius2, y + sin(angle2) * radius2, color2);
+		}
+		else
+		{
+			verticles[it] = Vertex_t(x + pSinCos[i].flCos * radius1, y + pSinCos[i].flSin * radius1, color1);
+			verticles[it + 1] = Vertex_t(x + pSinCos[i].flCos * radius2, y + pSinCos[i].flSin * radius2, color2);
+			verticles[it + 2] = Vertex_t(x + pSinCos[i + 1].flCos * radius1, y + pSinCos[i + 1].flSin * radius1, color1);
+			verticles[it + 3] = Vertex_t(x + pSinCos[i + 1].flCos * radius2, y + pSinCos[i + 1].flSin * radius2, color2);
+		}
 
 		for (uint8_t a = 0; a < modifier; a++)
 		{

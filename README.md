@@ -16,8 +16,11 @@ git submodule add https://github.com/Bulb4/renderer.git
 
 ***
 #### Initializing:
+If bUseDynamicSinCos is true, circle drawing will be faster but also it will take more memory.
+Use it if you do not change points count in runtime
+
 ```cpp
-cRender* pRender = new cRender(g_pd3dDevice);//g_pd3dDevice is our IDirect3DDevice9
+cRender* pRender = new cRender(g_pd3dDevice, true);//g_pd3dDevice is our IDirect3DDevice9
 
 ID3DXFont* font1 = nullptr;
 pRender->AddFont(&font1, "Consolas", 48, false);

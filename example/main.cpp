@@ -18,7 +18,6 @@ static D3DPRESENT_PARAMETERS g_d3dpp;
 LPDIRECT3DTEXTURE9 pRadarTexture = nullptr;
 LPD3DXSPRITE pRadarSprite = nullptr;
 
-
 short GetUsageOfCPU()
 {
 	const static HANDLE hCurrentProcess = GetCurrentProcess();
@@ -129,10 +128,9 @@ int CALLBACK WinMain(
 	ShowWindow(hwnd, SW_SHOWDEFAULT);
 	UpdateWindow(hwnd);
 
-	cRender* pRender = new cRender(g_pd3dDevice);
+	cRender* pRender = new cRender(g_pd3dDevice, true);
 
-	ID3DXFont* font1 = nullptr;
-	pRender->AddFont(&font1, "System", 24, false);
+	cFont font1(g_pd3dDevice, "System", 24);
 
 	pRender->SetFramerateUpdateRate(400U);
 	
@@ -176,14 +174,14 @@ int CALLBACK WinMain(
 			pRender->DrawGradientBox(460, 20, 200, 50, rainbow_color[0], rainbow_color[1], rainbow_color[2], rainbow_color[3]);
 			pRender->DrawBox(680, 20, 200, 50, 8, Colors::Pink);
 
-			pRender->DrawCircle(120, 190, 100, 32, RenderDrawType_Outlined, Colors::Red);
-			pRender->DrawCircle(340, 190, 100, 32, RenderDrawType_Filled, Colors::Green);
+			pRender->DrawCircle(120, 190, 100, 32, RenderDrawType_Outlined, Colors::Red, 0);
+			pRender->DrawCircle(340, 190, 100, 32, RenderDrawType_Filled, Colors::Green, 0);
 			pRender->DrawCircle(560, 190, 100, 32, RenderDrawType_Gradient, rainbow_color[0], rainbow_color[1]);
 
-			pRender->DrawRing(780, 190, 100, 80, 64, RenderDrawType_Filled, Colors::Blue);
+			pRender->DrawRing(780, 190, 100, 80, 64, RenderDrawType_Filled, Colors::Blue, 0);
 
-			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, RenderDrawType_Outlined, Colors::Green);
-			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RenderDrawType_Filled, Colors::SkyBlue);
+			pRender->DrawTriangle(120, 310, 20, 480, 220, 480, RenderDrawType_Outlined, Colors::Green, 0, 0);
+			pRender->DrawTriangle(340, 310, 240, 480, 440, 480, RenderDrawType_Filled, Colors::SkyBlue, 0, 0);
 			pRender->DrawTriangle(560, 310, 460, 480, 660, 480, RenderDrawType_FilledGradient, rainbow_color[0], rainbow_color[1], rainbow_color[2]);
 
 			pRender->DrawCircleSector(780, 380, 80, 30, time, time + 45, rainbow_color[0], rainbow_color[1]);
@@ -202,7 +200,7 @@ int CALLBACK WinMain(
 				last_fps = current_fps;
 
 				pRender->DrawString(
-					900, 10, Colors::White, font1, true, false,
+					900, 10, Colors::White, &font1, true, false,
 					"CPU: %i%%\nFPS: %d\nCPU Cores: %i\n%s",
 					cpu_usage, current_fps,
 					info.dwNumberOfProcessors,

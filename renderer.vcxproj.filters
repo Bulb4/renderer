@@ -15,6 +15,12 @@
     <ClInclude Include="include\renderer.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\color.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\font.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

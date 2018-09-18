@@ -136,6 +136,8 @@
     <ClCompile Include="include\renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\color.hpp" />
+    <ClInclude Include="include\font.hpp" />
     <ClInclude Include="include\renderer.h" />
   </ItemGroup>
   <ItemGroup>
