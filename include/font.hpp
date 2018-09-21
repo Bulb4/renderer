@@ -5,6 +5,7 @@
 class cFont
 {
 public:
+	cFont() { }
 	cFont(IDirect3DDevice9* pDevice)
 	{
 		this->pDevice = pDevice;
@@ -38,6 +39,7 @@ public:
 		RELEASE_INTERFACE(pFont);
 	}
 
+	IDirect3DDevice9* pDevice;
 	char szName[32] = "System";
 	int32_t iSize = 14;
 	//0, 100, 200 ... 1000
@@ -72,6 +74,5 @@ public:
 		}
 	}
 private:
-	IDirect3DDevice9* pDevice;
 	ID3DXFont* pFont = nullptr;
 };
