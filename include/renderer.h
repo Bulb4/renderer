@@ -75,29 +75,20 @@ public:
 	void SetFramerateUpdateRate(const uint16_t iUpdateRate) { m_iFramerateUpdateRate = iUpdateRate; }
 
 private:
-	struct SinCos_t { float flSin = 0.f, flCos = 0.f; };
-	map<uint16_t, SinCos_t*> m_SinCosContainer;
-	//we dont need to calculate sin and cos every frame, we just calculate it one time
-	SinCos_t* GetSinCos(uint16_t key)
-	{
-		if (!m_SinCosContainer.count(key))
-		{
-			SinCos_t* temp_array = new SinCos_t[key + 1];
-
-			uint16_t i = 0;
-			for (float angle = 0.0; angle <= 2 * D3DX_PI; angle += (2 * D3DX_PI) / key)
-				temp_array[i++] = SinCos_t{ sin(angle), cos(angle) };
-
-			m_SinCosContainer.insert(pair<uint16_t, SinCos_t*>(key, temp_array));
-		}
-
-		return m_SinCosContainer[key];
-	}
-
-	bool m_bUseDynamicSinCos;
-
 	uint16_t m_iFramerate = 0, m_iFramerateUpdateRate = 1000;
+
 protected:
+	struct SinCos_t
+	{
+		float flSin = 0.f, flCos = 0.f;
+	};
+
+	struct RenderState_t
+	{
+		D3DRENDERSTATETYPE dwState;
+		DWORD dwValue;
+	};
+
 	struct Vertex_t
 	{
 		Vertex_t() { }
@@ -124,13 +115,25 @@ protected:
 		color_t color = 0;
 	};
 
-	IDirect3DDevice9* m_pDevice;
-	
-	struct RenderState_t
+	map<uint16_t, SinCos_t*> m_SinCosContainer;
+	//we dont need to calculate sin and cos every frame, we just calculate it one time
+	SinCos_t* GetSinCos(uint16_t key)
 	{
-		D3DRENDERSTATETYPE dwState;
-		DWORD dwValue;
-	};
+		if (!m_SinCosContainer.count(key))
+		{
+			SinCos_t* temp_array = new SinCos_t[key + 1];
 
-	vector<RenderState_t>m_RenderStates;
+			uint16_t i = 0;
+			for (float angle = 0.0; angle <= 2 * D3DX_PI; angle += (2 * D3DX_PI) / key)
+				temp_array[i++] = SinCos_t{ sin(angle), cos(angle) };
+
+			m_SinCosContainer.insert(pair<uint16_t, SinCos_t*>(key, temp_array));
+		}
+
+		return m_SinCosContainer[key];
+	}
+
+	bool m_bUseDynamicSinCos;
+	IDirect3DDevice9* m_pDevice;
+	vector<RenderState_t> m_RenderStates;
 };
